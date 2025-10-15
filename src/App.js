@@ -8,6 +8,9 @@ export default function CyberSecurityDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [severityFilter, setSeverityFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [isCreatingProject, setIsCreatingProject] = useState(false);
+  const [newProjectName, setNewProjectName] = useState('');
+
 
   const [projects, setProjects] = useState([
     { id: 1, name: 'Production Web Servers', assets: 12, lastScan: '2025-10-14', criticalVulns: 3 },
@@ -46,6 +49,22 @@ export default function CyberSecurityDashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  const handleCreateProject = () => {
+    if (newProjectName.trim() !== '') {
+      const newProject = {
+        id: projects.length + 1,
+        name: newProjectName,
+        assets: 0,
+        lastScan: 'Never',
+        criticalVulns: 0,
+      };
+      setProjects([...projects, newProject]);
+      setNewProjectName('');
+      setIsCreatingProject(false);
+    }
+  };
+
+
   const getSeverityColor = (severity) => {
     const colors = {
       'Critical': 'bg-red-600',
@@ -64,7 +83,7 @@ export default function CyberSecurityDashboard() {
   };
 
   const filteredVulnerabilities = vulnerabilities.filter(v => {
-    const matchesSearch = v.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const matchesSearch = v.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          v.cve.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSeverity = severityFilter === 'all' || v.severity === severityFilter;
     return matchesSearch && matchesSeverity;
@@ -226,11 +245,28 @@ export default function CyberSecurityDashboard() {
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">Projects</h3>
-                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition text-sm">
+                <button onClick={() => setIsCreatingProject(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition text-sm">
                   <Plus size={16} />
                   New Project
                 </button>
               </div>
+
+              {isCreatingProject && (
+                <div className="mb-4">
+                  <input
+                    type="text"
+                    value={newProjectName}
+                    onChange={(e) => setNewProjectName(e.target.value)}
+                    placeholder="Enter project name"
+                    className="border rounded-lg px-4 py-2 w-full"
+                  />
+                  <div className="mt-2">
+                    <button onClick={handleCreateProject} className="bg-green-500 text-white px-4 py-2 rounded-lg mr-2">Create</button>
+                    <button onClick={() => setIsCreatingProject(false)} className="bg-gray-300 px-4 py-2 rounded-lg">Cancel</button>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-3 gap-4">
                 {projects.map(project => (
                   <div key={project.id} className="border-2 rounded-lg p-4 hover:border-blue-500 hover:shadow-lg cursor-pointer transition-all transform hover:-translate-y-1">
@@ -358,15 +394,15 @@ export default function CyberSecurityDashboard() {
                 <div className="flex gap-4">
                   <div className="flex-1 relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Search vulnerabilities..." 
-                      className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                      placeholder="Search vulnerabilities..."
+                      className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
-                  <select 
+                  <select
                     value={severityFilter}
                     onChange={(e) => setSeverityFilter(e.target.value)}
                     className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
